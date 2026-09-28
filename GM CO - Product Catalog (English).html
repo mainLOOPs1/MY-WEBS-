@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GM CO</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter / Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brandRed: '#ff2a4b',
+                        brandDark: '#0b0f19',
+                        brandCard: '#151c2c',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            font-family: 'Cairo', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism effects */
+        .glass-card {
+            background: rgba(21, 28, 44, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-modal {
+            background: rgba(11, 15, 25, 0.92);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        /* Sophisticated Red Glow Button Effect */
+        .btn-red-glow {
+            position: relative;
+            background: linear-gradient(135deg, #181920 0%, #0d0e12 100%);
+            border: 2px solid rgba(255, 42, 75, 0.6);
+            box-shadow: 0 0 20px rgba(255, 42, 75, 0.25), inset 0 0 15px rgba(255, 42, 75, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-red-glow:hover {
+            border-color: #ff2a4b;
+            box-shadow: 0 0 35px rgba(255, 42, 75, 0.6), inset 0 0 25px rgba(255, 42, 75, 0.3);
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .btn-red-glow:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #222d45;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff2a4b;
+        }
+
+        .view-transition {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        /* Image crop window style */
+        .crop-viewport {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 30px rgba(255, 42, 75, 0.3), inset 0 0 15px rgba(0,0,0,0.8);
+            border: 3px solid rgba(255, 42, 75, 0.8);
+            background: #05070c;
+        }
+
+        .crop-img-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+        }
+
+        .crop-img-container:active {
+            cursor: grabbing;
+        }
+
+        /* Range input styling */
+        input[type=range] {
+            accent-color: #ff2a4b;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brandRed selection:text-white">
+
+    <!-- MAIN NAVIGATION HEADER -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass-card border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <button id="backBtn" class="hidden text-gray-400 hover:text-white transition-colors bg-gray-800/60 p-2.5 rounded-full hover:bg-gray-700" title="Back">
+                <i class="fa-solid fa-arrow-right text-lg"></i>
+            </button>
+            <div id="navBrandName" class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-pink-500 to-white">
+                GM CO
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <span id="currentPageBadge" class="px-3 py-1 text-xs font-semibold rounded-full bg-red-950/60 border border-red-500/30 text-red-400">
+                Home
+            </span>
+            <!-- Settings Modal Trigger (3 Dots) -->
+            <button id="openSettingsBtn" class="text-gray-300 hover:text-red-400 text-xl p-2 rounded-full hover:bg-gray-800/80 transition-all focus:outline-none" title="Settings">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTENT WRAPPER -->
+    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6 max-w-7xl mx-auto w-full flex flex-col justify-center">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: LANDING PAGE (HERO / HOME)         -->
+        <!-- ========================================== -->
+        <section id="viewLanding" class="view-transition flex flex-col items-center justify-center min-h-[75vh] text-center space-y-8">
+            
+            <!-- Company Name Banner -->
+            <div class="space-y-2">
+                <h1 id="displayCompanyName" class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight drop-shadow-lg">
+                    captian project
+                </h1>
+                <p class="text-gray-400 text-sm sm:text-base font-light">Advanced Products & Tech Solutions Platform</p>
+            </div>
+
+            <!-- Circular Image Display & Interactive Crop Control -->
+            <div class="flex flex-col items-center space-y-4">
+                <div class="crop-viewport relative group">
+                    <div id="cropContainer" class="crop-img-container">
+                        <img id="avatarImg" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80" alt="Logo image" class="max-w-none transition-all duration-75 select-none pointer-events-none" style="transform: translate(0px, 0px) scale(1) rotate(0deg); filter: brightness(100%) blur(0px);">
+                    </div>
+                    <!-- Overlay Badge -->
+                    <label for="imgUploadInput" class="absolute bottom-2 right-2 bg-red-600 hover:bg-red-500 text-white p-2.5 rounded-full cursor-pointer shadow-lg hover:scale-110 transition-transform duration-200" title="Upload new image">
+                        <i class="fa-solid fa-camera text-sm"></i>
+                    </label>
+                </div>
+                <input type="file" id="imgUploadInput" accept="image/*" class="hidden">
+
+                <!-- Change Photo Button -->
+                <label for="imgUploadInput" class="text-xs text-gray-400 hover:text-red-400 flex items-center gap-1.5 bg-gray-800/40 px-3 py-1.5 rounded-lg border border-gray-700/50 hover:border-red-500/40 transition-all cursor-pointer">
+                    <i class="fa-solid fa-image"></i>
+                    <span>Change Photo</span>
+                </label>
+
+                <!-- Inline Photo Controls Button Toggle -->
+                <button id="togglePhotoEditBtn" class="text-xs text-gray-400 hover:text-red-400 flex items-center gap-1.5 bg-gray-800/40 px-3 py-1.5 rounded-lg border border-gray-700/50 hover:border-red-500/40 transition-all">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Adjust Photo Settings</span>
+                </button>
+
+                <!-- Expandable Photo Adjustment Panel -->
+                <div id="photoControlsPanel" class="hidden glass-card p-4 rounded-xl w-72 sm:w-80 space-y-3 text-xs text-gray-300 border border-gray-700">
+                    <div class="flex justify-between items-center border-b border-gray-700 pb-2">
+                        <span class="font-bold text-red-400">Interactive Photo Editor</span>
+                        <button id="resetPhotoBtn" class="text-gray-400 hover:text-white"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+                    </div>
+                    <div class="space-y-1 text-left">
+                        <div class="flex justify-between"><span>Zoom (Scale)</span><span id="zoomVal">1x</span></div>
+                        <input type="range" id="zoomRange" min="0.5" max="3" step="0.05" value="1" class="w-full">
+                    </div>
+                    <div class="space-y-1 text-left">
+                        <div class="flex justify-between"><span>Horizontal Offset (X)</span><span id="posXVal">0px</span></div>
+                        <input type="range" id="posXRange" min="-150" max="150" step="1" value="0" class="w-full">
+                    </div>
+                    <div class="space-y-1 text-left">
+                        <div class="flex justify-between"><span>Vertical Offset (Y)</span><span id="posYVal">0px</span></div>
+                        <input type="range" id="posYRange" min="-150" max="150" step="1" value="0" class="w-full">
+                    </div>
+                    <div class="space-y-1 text-left">
+                        <div class="flex justify-between"><span>Brightness</span><span id="brightVal">100%</span></div>
+                        <input type="range" id="brightRange" min="30" max="200" step="5" value="100" class="w-full">
+                    </div>
+                    <div class="space-y-1 text-left">
+                        <div class="flex justify-between"><span>Blur</span><span id="blurVal">0px</span></div>
+                        <input type="range" id="blurRange" min="0" max="10" step="0.5" value="0" class="w-full">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Browse Products Main Action Button -->
+            <div class="pt-4">
+                <button id="btnBrowseProducts" class="btn-red-glow text-red-500 font-black text-2xl sm:text-3xl px-10 py-5 rounded-2xl tracking-wider uppercase flex items-center gap-4 mx-auto group">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-red-400 to-pink-500 group-hover:from-red-400 group-hover:to-red-200">
+                        Browse Products
+                    </span>
+                    <i class="fa-solid fa-angles-left text-red-500 group-hover:translate-x-[-6px] transition-transform duration-300"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: CATEGORIES PAGE (SIX SECTIONS)     -->
+        <!-- ========================================== -->
+        <section id="viewCategories" class="view-transition hidden space-y-8 py-4">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <h2 class="text-3xl sm:text-4xl font-black text-white">Main Product Categories</h2>
+                <p class="text-gray-400 text-sm">Choose one of the categories below to browse the latest devices and technology</p>
+            </div>
+
+            <!-- Grid of 6 Main Categories -->
+            <div id="categoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic Category Cards are populated via JS -->
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: PRODUCT CATALOG CATALOG PAGE      -->
+        <!-- ========================================== -->
+        <section id="viewProducts" class="view-transition hidden space-y-8 py-4">
+            <!-- Catalog Header -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-800 pb-6">
+                <div>
+                    <div class="flex items-center gap-2 text-xs text-red-400 mb-1">
+                        <span id="catBreadcrumbParent" class="cursor-pointer hover:underline">Categories</span>
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        <span id="catBreadcrumbCurrent" class="font-bold">Category Name</span>
+                    </div>
+                    <h2 id="catalogTitle" class="text-3xl font-extrabold text-white">Category Products</h2>
+                    <p id="catalogDesc" class="text-gray-400 text-sm mt-1">Browse our featured range of available products</p>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <input type="text" id="productSearchInput" placeholder="Search products..." class="w-full sm:w-64 bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-red-500">
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Products dynamically inserted via JS -->
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- ========================================== -->
+    <!-- SETTINGS MODAL / SIDE PANEL                -->
+    <!-- ========================================== -->
+    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-modal w-full max-w-lg rounded-2xl p-6 space-y-6 transform scale-95 transition-transform duration-300 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-4">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-red-500 text-xl"></i>
+                    <h3 class="text-xl font-bold text-white">Site Settings & Customization</h3>
+                </div>
+                <button id="closeSettingsBtn" class="text-gray-400 hover:text-white text-lg p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm max-h-[65vh] overflow-y-auto pr-1">
+                <!-- Edit Company Name -->
+                <div class="space-y-1">
+                    <label class="block text-gray-300 font-semibold">Main Company Name (Home):</label>
+                    <input type="text" id="settingCompanyNameInput" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:border-red-500 focus:outline-none" value="captian project">
+                </div>
+
+                <!-- Custom Avatar URL -->
+                <div class="space-y-1">
+                    <label class="block text-gray-300 font-semibold">Logo Image URL:</label>
+                    <input type="text" id="settingAvatarUrlInput" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white focus:border-red-500 focus:outline-none" placeholder="https://...">
+                </div>
+
+                <!-- Category Titles Configuration -->
+                <div class="border-t border-gray-800 pt-3 space-y-3">
+                    <h4 class="font-bold text-red-400">Edit the Titles & Descriptions of the Six Categories:</h4>
+                    <div id="settingsCategoriesList" class="space-y-3">
+                        <!-- Populated via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-gray-800 pt-4">
+                <button id="resetDefaultsBtn" class="px-4 py-2 text-gray-400 hover:text-white rounded-lg text-xs">Restore Defaults</button>
+                <button id="saveSettingsBtn" class="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold text-sm shadow-lg transition-all">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- FOOTER -->
+    <footer class="border-t border-gray-900 py-6 text-center text-xs text-gray-500">
+        <p>© 2026 GM CO. All rights reserved.</p>
+    </footer>
+
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC                           -->
+    <!-- ========================================== -->
+    <script>
+        // Default System Data
+        const defaultCategories = [
+            {
+                id: 'screens',
+                name: 'Screens',
+                titleAr: 'TV Screens',
+                desc: 'Smart, high-definition cinematic display screens',
+                img: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=600&q=80',
+                products: [
+                    { name: 'OLED 4K Smart TV 65"', price: '$1,299', img: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=500&q=80', spec: '120Hz | HDR10+ | Cinema Mode' },
+                    { name: '8K Ultra HD Curved TV 75"', price: '$2,499', img: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=500&q=80', spec: 'Quantum Dot | Dolby Atmos' },
+                    { name: 'Slim Frame Master Screen 55"', price: '$899', img: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=500&q=80', spec: 'Smart OS | Voice Control' },
+                    { name: 'Laser Short Throw Projector Screen', price: '$1,750', img: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=500&q=80', spec: '4K Projection | Ambient Light Rejection' }
+                ]
+            },
+            {
+                id: 'monitors',
+                name: 'Monitors',
+                titleAr: 'Computer Monitors',
+                desc: 'Professional monitors for gaming, design, and editing',
+                img: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80',
+                products: [
+                    { name: 'UltraWide Curved Gaming Monitor 34"', price: '$599', img: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=500&q=80', spec: '175Hz | 0.1ms OLED | WQHD' },
+                    { name: '4K Professional Studio Display 27"', price: '$799', img: 'https://images.unsplash.com/photo-1585792180666-f7347c490ee2?auto=format&fit=crop&w=500&q=80', spec: '100% DCI-P3 | IPS Glass' },
+                    { name: 'Esports 240Hz Gaming Screen 25"', price: '$349', img: 'https://images.unsplash.com/photo-1547119957-637f8679db1e?auto=format&fit=crop&w=500&q=80', spec: '1ms DyAc+ | Fast TN Panel' },
+                    { name: 'Dual QHD Ergonomic Office Monitor', price: '$449', img: 'https://images.unsplash.com/photo-1551645120-d70bfe822827?auto=format&fit=crop&w=500&q=80', spec: 'USB-C Hub | Eye Care' }
+                ]
+            },
+            {
+                id: 'phones',
+                name: 'Phones',
+                titleAr: 'Smartphones',
+                desc: 'The latest smartphones with advanced camera technology',
+                img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80',
+                products: [
+                    { name: 'Flagship Ultra 5G Phone 512GB', price: '$1,199', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=500&q=80', spec: '200MP Camera | Titanium Frame' },
+                    { name: 'Foldable Dual Screen Pro', price: '$1,499', img: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=500&q=80', spec: 'Flexible AMOLED | S-Pen Ready' },
+                    { name: 'Compact Gaming Phone 16GB RAM', price: '$899', img: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=500&q=80', spec: 'Active Cooling | RGB Backlight' },
+                    { name: 'Slim Lite 5G Smartphone', price: '$499', img: 'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?auto=format&fit=crop&w=500&q=80', spec: '67W Fast Charging | 108MP' }
+                ]
+            },
+            {
+                id: 'consumer-electronics',
+                name: 'Consumer Electronics',
+                titleAr: 'Consumer Electronics',
+                desc: 'Headphones, smart home devices, and digital accessories',
+                img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+                products: [
+                    { name: 'Noise-Canceling Wireless Headphones', price: '$299', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80', spec: '30h Battery | Hi-Res Audio' },
+                    { name: 'Smart Home Speaker Hub with Screen', price: '$180', img: 'https://images.unsplash.com/photo-1543512214-318c7553f230?auto=format&fit=crop&w=500&q=80', spec: 'AI Assistant | Smart Control' },
+                    { name: 'Pro Wireless Earbuds ANC', price: '$199', img: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=500&q=80', spec: 'Spatial Audio | IPX4 Waterproof' },
+                    { name: 'Smartwatch Fitness Tracker GPS', price: '$249', img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80', spec: 'OLED Display | ECG & HR Monitor' }
+                ]
+            },
+            {
+                id: 'hardware',
+                name: 'Hardware',
+                titleAr: 'Computer Hardware & Components',
+                desc: 'Processors, graphics cards, and high-performance cooling solutions',
+                img: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=600&q=80',
+                products: [
+                    { name: 'Next-Gen RTX Graphics Card 16GB', price: '$999', img: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=500&q=80', spec: 'Ray Tracing | DLSS 3.5' },
+                    { name: 'High Speed NVMe PCIe 4.0 SSD 2TB', price: '$169', img: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=500&q=80', spec: '7300 MB/s Read Speed' },
+                    { name: '16-Core Unlocked Desktop CPU', price: '$549', img: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&w=500&q=80', spec: '5.7 GHz Boost | Liquid Cool Ready' },
+                    { name: 'DDR5 RGB Gaming RAM Kit 32GB', price: '$139', img: 'https://images.unsplash.com/photo-1562976540-1502c2145186?auto=format&fit=crop&w=500&q=80', spec: '6000MHz | CL30 Performance' }
+                ]
+            },
+            {
+                id: 'gaming-vr',
+                name: 'Gaming & VR',
+                titleAr: 'Gaming & Virtual Reality',
+                desc: 'VR headsets, game consoles, and motion control accessories',
+                img: 'https://images.unsplash.com/photo-1622979135225-d2ba269bc1bd?auto=format&fit=crop&w=600&q=80',
+                products: [
+                    { name: 'Next-Gen Standalone VR Headset 256GB', price: '$499', img: 'https://images.unsplash.com/photo-1622979135225-d2ba269bc1bd?auto=format&fit=crop&w=500&q=80', spec: '4K Display | Hand Tracking' },
+                    { name: 'RGB Haptic Feedback Game Controller', price: '$89', img: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=500&q=80', spec: 'Programmable Triggers | PC/Console' },
+                    { name: 'Handheld Portable Gaming Console', price: '$649', img: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=500&q=80', spec: '7" 120Hz Touchscreen | Ryzen APU' },
+                    { name: 'VR Racing Cockpit Wheel & Pedals', price: '$399', img: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=500&q=80', spec: 'Direct Drive Force Feedback' }
+                ]
+            }
+        ];
+
+        // State Store
+        let state = {
+            companyName: 'captian project',
+            categories: JSON.parse(JSON.stringify(defaultCategories)),
+            activeView: 'landing', // 'landing', 'categories', 'products'
+            selectedCategoryId: null,
+            photoTransform: {
+                zoom: 1,
+                x: 0,
+                y: 0,
+                brightness: 100,
+                blur: 0
+            }
+        };
+
+        // DOM Elements
+        const viewLanding = document.getElementById('viewLanding');
+        const viewCategories = document.getElementById('viewCategories');
+        const viewProducts = document.getElementById('viewProducts');
+        const backBtn = document.getElementById('backBtn');
+        const currentPageBadge = document.getElementById('currentPageBadge');
+        const displayCompanyName = document.getElementById('displayCompanyName');
+        const avatarImg = document.getElementById('avatarImg');
+        const imgUploadInput = document.getElementById('imgUploadInput');
+        
+        // Photo Control Inputs
+        const togglePhotoEditBtn = document.getElementById('togglePhotoEditBtn');
+        const photoControlsPanel = document.getElementById('photoControlsPanel');
+        const zoomRange = document.getElementById('zoomRange');
+        const posXRange = document.getElementById('posXRange');
+        const posYRange = document.getElementById('posYRange');
+        const brightRange = document.getElementById('brightRange');
+        const blurRange = document.getElementById('blurRange');
+        const zoomVal = document.getElementById('zoomVal');
+        const posXVal = document.getElementById('posXVal');
+        const posYVal = document.getElementById('posYVal');
+        const brightVal = document.getElementById('brightVal');
+        const blurVal = document.getElementById('blurVal');
+        const resetPhotoBtn = document.getElementById('resetPhotoBtn');
+
+        // Nav Buttons
+        const btnBrowseProducts = document.getElementById('btnBrowseProducts');
+        const categoriesGrid = document.getElementById('categoriesGrid');
+        
+        // Settings Modal Elements
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+        const settingCompanyNameInput = document.getElementById('settingCompanyNameInput');
+        const settingAvatarUrlInput = document.getElementById('settingAvatarUrlInput');
+        const settingsCategoriesList = document.getElementById('settingsCategoriesList');
+
+        // Product View Elements
+        const catalogTitle = document.getElementById('catalogTitle');
+        const catalogDesc = document.getElementById('catalogDesc');
+        const catBreadcrumbCurrent = document.getElementById('catBreadcrumbCurrent');
+        const catBreadcrumbParent = document.getElementById('catBreadcrumbParent');
+        const productsGrid = document.getElementById('productsGrid');
+        const productSearchInput = document.getElementById('productSearchInput');
+
+        // --- VIEW SWITCHING LOGIC ---
+        function switchView(targetView) {
+            state.activeView = targetView;
+
+            // Hide all views
+            viewLanding.classList.add('hidden');
+            viewCategories.classList.add('hidden');
+            viewProducts.classList.add('hidden');
+
+            // Reset back button
+            backBtn.classList.remove('hidden');
+
+            if (targetView === 'landing') {
+                viewLanding.classList.remove('hidden');
+                backBtn.classList.add('hidden');
+                currentPageBadge.textContent = 'Home';
+            } else if (targetView === 'categories') {
+                viewCategories.classList.remove('hidden');
+                currentPageBadge.textContent = 'Categories (6)';
+                renderCategoriesGrid();
+            } else if (targetView === 'products') {
+                viewProducts.classList.remove('hidden');
+                currentPageBadge.textContent = 'Product Catalog';
+                renderProductsGrid();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        backBtn.addEventListener('click', () => {
+            if (state.activeView === 'products') {
+                switchView('categories');
+            } else if (state.activeView === 'categories') {
+                switchView('landing');
+            }
+        });
+
+        catBreadcrumbParent.addEventListener('click', () => {
+            switchView('categories');
+        });
+
+        btnBrowseProducts.addEventListener('click', () => {
+            switchView('categories');
+        });
+
+        // --- PHOTO EDITOR ENGINE ---
+        function updateAvatarStyle() {
+            const { zoom, x, y, brightness, blur } = state.photoTransform;
+            avatarImg.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
+            avatarImg.style.filter = `brightness(${brightness}%) blur(${blur}px)`;
+
+            // Update UI Labels
+            zoomVal.textContent = `${parseFloat(zoom).toFixed(2)}x`;
+            posXVal.textContent = `${x}px`;
+            posYVal.textContent = `${y}px`;
+            brightVal.textContent = `${brightness}%`;
+            blurVal.textContent = `${blur}px`;
+        }
+
+        // Toggle panel
+        togglePhotoEditBtn.addEventListener('click', () => {
+            photoControlsPanel.classList.toggle('hidden');
+        });
+
+        // Sliders Listeners
+        zoomRange.addEventListener('input', (e) => { state.photoTransform.zoom = e.target.value; updateAvatarStyle(); });
+        posXRange.addEventListener('input', (e) => { state.photoTransform.x = e.target.value; updateAvatarStyle(); });
+        posYRange.addEventListener('input', (e) => { state.photoTransform.y = e.target.value; updateAvatarStyle(); });
+        brightRange.addEventListener('input', (e) => { state.photoTransform.brightness = e.target.value; updateAvatarStyle(); });
+        blurRange.addEventListener('input', (e) => { state.photoTransform.blur = e.target.value; updateAvatarStyle(); });
+
+        resetPhotoBtn.addEventListener('click', () => {
+            state.photoTransform = { zoom: 1, x: 0, y: 0, brightness: 100, blur: 0 };
+            zoomRange.value = 1;
+            posXRange.value = 0;
+            posYRange.value = 0;
+            brightRange.value = 100;
+            blurRange.value = 0;
+            updateAvatarStyle();
+        });
+
+        // Image File Upload handler
+        imgUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    avatarImg.src = evt.target.result;
+                    settingAvatarUrlInput.value = ''; // clear custom URL input if file uploaded
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- CATEGORIES RENDER ENGINE ---
+        function renderCategoriesGrid() {
+            categoriesGrid.innerHTML = '';
+
+            state.categories.forEach((cat) => {
+                const card = document.createElement('div');
+                card.className = "glass-card rounded-2xl overflow-hidden hover:border-red-500/50 transition-all duration-300 group cursor-pointer flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div class="relative h-48 overflow-hidden bg-gray-950">
+                        <img src="${cat.img}" alt="${cat.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/600x400/151c2c/ffffff?text=${cat.name}'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brandDark via-transparent to-transparent"></div>
+                        <span class="absolute top-3 right-3 bg-red-600/80 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                            ${cat.name}
+                        </span>
+                    </div>
+                    <div class="p-5 flex-grow flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-white group-hover:text-red-400 transition-colors">${cat.titleAr}</h3>
+                            <p class="text-gray-400 text-xs mt-1.5 leading-relaxed">${cat.desc}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-gray-800/80 text-xs">
+                            <span class="text-red-400 font-semibold flex items-center gap-1">
+                                Browse ${cat.products.length} products <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </span>
+                            <span class="text-gray-500"><i class="fa-solid fa-box-open"></i></span>
+                        </div>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => {
+                    state.selectedCategoryId = cat.id;
+                    switchView('products');
+                });
+
+                categoriesGrid.appendChild(card);
+            });
+        }
+
+        // --- PRODUCTS RENDER ENGINE ---
+        function renderProductsGrid(filterKeyword = '') {
+            const activeCategory = state.categories.find(c => c.id === state.selectedCategoryId) || state.categories[0];
+            
+            catalogTitle.textContent = activeCategory.titleAr;
+            catalogDesc.textContent = activeCategory.desc;
+            catBreadcrumbCurrent.textContent = activeCategory.titleAr;
+
+            productsGrid.innerHTML = '';
+
+            let filteredProducts = activeCategory.products;
+            if (filterKeyword.trim() !== '') {
+                filteredProducts = filteredProducts.filter(p => 
+                    p.name.toLowerCase().includes(filterKeyword.toLowerCase()) || 
+                    p.spec.toLowerCase().includes(filterKeyword.toLowerCase())
+                );
+            }
+
+            if (filteredProducts.length === 0) {
+                productsGrid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-gray-500">
+                        <i class="fa-solid fa-magnifying-glass text-3xl mb-2"></i>
+                        <p>No products match your search</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredProducts.forEach(prod => {
+                const prodCard = document.createElement('div');
+                prodCard.className = "glass-card rounded-xl overflow-hidden hover:border-red-500/40 transition-all duration-300 flex flex-col justify-between group";
+                
+                prodCard.innerHTML = `
+                    <div class="relative h-44 overflow-hidden bg-gray-900">
+                        <img src="${prod.img}" alt="${prod.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/400x300/151c2c/ff2a4b?text=Product'">
+                        <span class="absolute top-2 left-2 bg-gray-900/90 border border-gray-700 text-white font-bold text-xs px-2.5 py-1 rounded-md">
+                            ${prod.price}
+                        </span>
+                    </div>
+                    <div class="p-4 flex-grow flex flex-col justify-between space-y-3">
+                        <div>
+                            <h4 class="font-bold text-gray-100 text-base group-hover:text-red-400 transition-colors">${prod.name}</h4>
+                            <p class="text-xs text-gray-400 mt-1">${prod.spec}</p>
+                        </div>
+                        <button class="w-full bg-red-600/20 hover:bg-red-600 border border-red-500/40 hover:border-red-500 text-red-300 hover:text-white py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-shopping"></i> Order Product (Default)
+                        </button>
+                    </div>
+                `;
+                productsGrid.appendChild(prodCard);
+            });
+        }
+
+        productSearchInput.addEventListener('input', (e) => {
+            renderProductsGrid(e.target.value);
+        });
+
+        // --- SETTINGS MODAL & EDITING ---
+        function openSettingsModal() {
+            settingCompanyNameInput.value = state.companyName;
+            
+            // Build dynamic categories editors
+            settingsCategoriesList.innerHTML = '';
+            state.categories.forEach((cat, idx) => {
+                const item = document.createElement('div');
+                item.className = "bg-gray-900/80 p-3 rounded-lg border border-gray-800 space-y-2";
+                item.innerHTML = `
+                    <div class="flex items-center justify-between text-xs text-gray-400 font-bold">
+                        <span>Category #${idx + 1}: ${cat.name}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" data-idx="${idx}" data-field="titleAr" value="${cat.titleAr}" placeholder="Category Title" class="cat-edit-input bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white">
+                        <input type="text" data-idx="${idx}" data-field="img" value="${cat.img}" placeholder="Image URL" class="cat-edit-input bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white">
+                    </div>
+                `;
+                settingsCategoriesList.appendChild(item);
+            });
+
+            settingsModal.classList.remove('opacity-0', 'pointer-events-none');
+            settingsModal.querySelector('div').classList.remove('scale-95');
+        }
+
+        function closeSettingsModal() {
+            settingsModal.classList.add('opacity-0', 'pointer-events-none');
+            settingsModal.querySelector('div').classList.add('scale-95');
+        }
+
+        openSettingsBtn.addEventListener('click', openSettingsModal);
+        closeSettingsBtn.addEventListener('click', closeSettingsModal);
+
+        // Save Settings
+        saveSettingsBtn.addEventListener('click', () => {
+            // Update company name
+            const newName = settingCompanyNameInput.value.trim();
+            if (newName) {
+                state.companyName = newName;
+                displayCompanyName.textContent = newName;
+            }
+
+            // Update avatar from URL if provided
+            const newAvatarUrl = settingAvatarUrlInput.value.trim();
+            if (newAvatarUrl) {
+                avatarImg.src = newAvatarUrl;
+            }
+
+            // Update category fields
+            const catInputs = document.querySelectorAll('.cat-edit-input');
+            catInputs.forEach(input => {
+                const idx = input.getAttribute('data-idx');
+                const field = input.getAttribute('data-field');
+                if (state.categories[idx]) {
+                    state.categories[idx][field] = input.value;
+                }
+            });
+
+            closeSettingsModal();
+            
+            // Refresh currently visible screens
+            if (state.activeView === 'categories') {
+                renderCategoriesGrid();
+            } else if (state.activeView === 'products') {
+                renderProductsGrid();
+            }
+        });
+
+        // Reset to default
+        resetDefaultsBtn.addEventListener('click', () => {
+            state.companyName = 'captian project';
+            state.categories = JSON.parse(JSON.stringify(defaultCategories));
+            displayCompanyName.textContent = state.companyName;
+            avatarImg.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80';
+            closeSettingsModal();
+            if (state.activeView === 'categories') renderCategoriesGrid();
+            if (state.activeView === 'products') renderProductsGrid();
+        });
+
+        // INITIALIZE ON LOAD
+        window.onload = function() {
+            displayCompanyName.textContent = state.companyName;
+            updateAvatarStyle();
+        };
+    </script>
+</body>
+</html>
